@@ -1,6 +1,4 @@
 # TODO: NaN exceptions
-# FIX: Hit all sites together
-# ! What to do with premium reads
 
 import requests
 import numpy as np
@@ -8,6 +6,7 @@ from bs4 import BeautifulSoup
 import undetected_chromedriver as uc
 from datetime import datetime
 import re
+import json
 
 def clean_text(raw_text):
     """Clean the text withing the Main Content"""
@@ -17,7 +16,7 @@ def clean_text(raw_text):
 
 
 # page: 1-2305
-site = "https://www.business-standard.com/markets/news/hdfc-amc-uti-amc-nippon-amc-rise-in-sip-mutual-fund-flows-turn-analysts-bullish-on-amc-stocks-125071000543_1.html"
+webpage_link = "https://www.business-standard.com/latest-news/page-1"
 
 # title = []
 # path = []
@@ -33,59 +32,141 @@ site = "https://www.business-standard.com/markets/news/hdfc-amc-uti-amc-nippon-a
 
 
 driver = uc.Chrome(version_main=137)        # WARNING: Do not change VERSION_MAIN
-driver.get(site)
-webpage = driver.page_source
+driver.get(webpage_link)
+webpage_source = driver.page_source
 driver.quit()
 
-soup = BeautifulSoup(webpage, 'lxml')
+latest_news = BeautifulSoup(webpage_source, 'lxml')
+
+articles = latest_news.find_all("div", class_ = "listingstyle_cardlistlist__dfq57 cardlist")
+
+for article in articles:
+    article_link = article.find("a", class_ = "smallcard-title")
+    article_link = article_link["href"]
+
+    try:
+
+        is_premium = article.find("span", class_ = "premium_categorytext__IqxZz")
+
+    except:
+
+        is_premium = np.nan
+
+    driver = uc.Chrome(version_main=137)
+    driver.get(article_link)
+    article_source = driver.page_source
+    driver.quit()
+
+    soup = BeautifulSoup(article_source, 'lxml')
 
 
-# Heading
-title = soup.find_all("h1")
+    is_live = soup.find("span", class_ = "d-flex LiveButton_livetitle___zRer")
 
-# Path on BS website
-path = soup.find("div", class_ = "breadcrum").text.strip()
+    if not is_live:
 
-# Link to website
-link = site
+        if is_premium:
+            premium = "True"
+        else:
+            premium = "False"
 
-# tldr
-tldr = soup.find("h2", class_ = re.compile(r"MainStory.*")).text.strip()
-
-# Date and Time
-meta_info = soup.find("div", class_ = "meta-info")
-date_time = meta_info["data-expandedtime"]
-date , time = date_time.split("|")
-date = date.strip()         # Date
-time = time.strip()         # Time
-time = time.replace("IST", "").strip()
-datetime_str = f"{date} {time}"
-datetime = datetime.strptime(datetime_str, "%b %d %Y %I:%M %p")     # DateTime Object
-
-# Author
-author = soup.find("span", class_ = "MainStory_dtlauthinfo__u_CUx")
-author = author.find("a").text.strip()
-
-# Topics
-topics = soup.find("div", class_ = "MainStory_topiclisting__Pomc9")
-topics = topics.find("span").find_all("span")
-topics[:] = [topic.text.strip() for topic in topics]
-
-# Content
-content = soup.find("div", id = "parent_top_div")
-
-latest_read = content.find("div", class_="mb-20")
-if latest_read:
-    latest_read.decompose()
-
-read_more = content.find_all("strong", class_ = "read_more")
-for read in read_more:
-    read.decompose()
-
-content = clean_text(content.text)
+        try:
+            # Heading
+            title = soup.find("h1").text.strip()
+        except:
+            title = np.nan
 
 
-print(content)
+        try:
+            # path on bs website
+            path = soup.find("div", class_ = "breadcrum").text.strip()
+            category = path.split("/")[1].strip()
+        except:
+            path = np.nan
+            category = np.nan
+
+        try:
+            # Link to website
+            link = article_link
+        except:
+            link = np.nan
+
+
+        try:
+            # tldr
+            tldr = soup.find("h2", class_ = re.compile(r"MainStory.*")).text.strip()
+        except:
+            tldr = np.nan
+
+        try:
+            # Date and Time
+            meta_info = soup.find("div", class_ = "meta-info")
+            date_time = meta_info["data-expandedtime"]
+            date , time = date_time.split("|")
+            date = date.strip()         # Date
+            time = time.strip()         # Time
+            time = time.replace("IST", "").strip()
+            datetime_str = f"{date} {time}"
+            datetime = datetime.strptime(datetime_str, "%b %d %Y %I:%M %p")     # DateTime Object
+        except:
+            date = np.nan
+            time = np.nan
+            datetime = np.nan
+
+        try:
+            # Author
+            author = soup.find("span", class_ = "MainStory_dtlauthinfo__u_CUx")
+            author = author.find("a").text.strip()
+        except:
+            author = np.nan
+
+        try:
+            # Topics
+            topics = soup.find("div", class_ = "MainStory_topiclisting__Pomc9")
+            topics = topics.find("span").find_all("span")
+            topics[:] = [topic.text.strip() for topic in topics]
+        except:
+            topics = np.nan
+
+        try:
+            # Content
+            content = soup.find("div", id = "parent_top_div")
+
+            latest_read = content.find("div", class_="mb-20")
+            if latest_read:
+                latest_read.decompose()
+
+            read_more = content.find_all("strong", class_ = "read_more")
+            for read in read_more:
+                read.decompose()
+
+            content = clean_text(content.text)
+        except:
+            content = np.nan
+
+
+
+        data = {
+            "title": title,
+            "path": path,
+            "category": category,
+            "link": link,
+            "tldr": tldr,
+            "content": content,
+            "date": date,
+            "time": time,
+            "datetime": datetime.isoformat(),  # convert datetime object to string
+            "topics": topics,
+            "author": author,
+            "premium": premium
+        }
+
+
+        print(data)
+
+
+        with open("articles.jsonl", "a", encoding="utf-8") as f:
+            f.write(json.dumps(data, ensure_ascii=False) + "\n")
+
 
 
 
