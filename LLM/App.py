@@ -1,5 +1,5 @@
 import streamlit as st
-#import main
+import main
 
 st.set_page_config(page_title="AI Search", layout="centered")
 st.title("Business Standard AI Search")
@@ -21,8 +21,8 @@ st.markdown("""
 """, unsafe_allow_html=True )
 
 query = st.text_input("What is your query of the day?")
-#answer = main.main_answer
+answer = main.result
 
 st.subheader("Answer:")
-#st.write(answer)
+st.write(answer)
 
