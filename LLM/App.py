@@ -20,7 +20,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True )
 
-query = st.text_input("What is your query of the day?", key="user_query")
+query = st.text_input("What is your query of the day?")
 
 if query:
     try:    

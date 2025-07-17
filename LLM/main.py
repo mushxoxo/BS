@@ -24,32 +24,32 @@ prompt = ChatPromptTemplate.from_template(template)
 chain = prompt | model
 
 while True:
-    print("\n\n-------------------------------------")
+    #print("\n\n-------------------------------------")
     question = App.query.strip() #Made a change here
 
     if question.lower() == "q":
         break
 
-    print("\n[Step 1] Scraping articles...")
+    #print("\n[Step 1] Scraping articles...")
     scrape_articles(question)
 
-    print("[Step 2] Refreshing vector store...")
+    #print("[Step 2] Refreshing vector store...")
     retriever = refresh_vector_store()
 
-    print("[Step 3] Retrieving relevant content...")
+    #print("[Step 3] Retrieving relevant content...")
     retrieved_docs = retriever.invoke(question)
 
     if not retrieved_docs:
-        print("No relevant articles found.")
+        #print("No relevant articles found.")
         continue
 
     info = ""
     for i, doc in enumerate(retrieved_docs):
-        print(f"\n--- Retrieved Doc #{i+1} ---")
-        print("Metadata:", doc.metadata)
+        #(f"\n--- Retrieved Doc #{i+1} ---")
+        #print("Metadata:", doc.metadata)
         info += doc.page_content + "\n\n"
 
-    print("[Step 4] Asking LLM...\n")
+    #print("[Step 4] Asking LLM...\n")
     result = chain.invoke({"info": info, "question": question})
 
-    print("\n\nAnswer:\n", result)
+    #print("\n\nAnswer:\n", result)
