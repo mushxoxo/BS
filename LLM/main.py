@@ -25,7 +25,7 @@ chain = prompt | model
 
 while True:
     print("\n\n-------------------------------------")
-    question = App.query.strip()
+    question = App.query.strip() #Made a change here
 
     if question.lower() == "q":
         break
