@@ -1,4 +1,5 @@
 import streamlit as st
+#import main
 
 st.set_page_config(page_title="AI Search", layout="centered")
 st.title("Business Standard AI Search")
@@ -8,9 +9,7 @@ st.markdown("""
     .stButton>button {
         width: 100%;
         padding: 0.75em;
-        background-color: #0a84ff;
-        color: grey;
-        font-size: 16px;
+        font-size: 26px;
         border-radius: 10px;
     }
     .stTextInput>div>Input {
@@ -22,4 +21,8 @@ st.markdown("""
 """, unsafe_allow_html=True )
 
 query = st.text_input("What is your query of the day?")
+#answer = main.main_answer
+
+st.subheader("Answer:")
+#st.write(answer)
 
