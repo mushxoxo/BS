@@ -1,5 +1,5 @@
 import streamlit as st
-import main
+import main as back
 
 st.set_page_config(page_title="AI Search", layout="centered")
 st.title("Business Standard AI Search")
@@ -20,9 +20,17 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True )
 
-query = st.text_input("What is your query of the day?")
-answer = main.result
+query = st.text_input("What is your query of the day?", key="user_query")
 
-st.subheader("Answer:")
-st.write(answer)
+if query:
+    try:    
+        answer = back.result
+    except Exception as e:
+        st.error(f"Error generating response {e}")
+    else:
+        st.subheader("Answer:")
+        st.write(answer)
+
+else:
+    st.info("Please enter your query for an AI answer")
 

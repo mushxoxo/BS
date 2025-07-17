@@ -2,6 +2,7 @@ from langchain_ollama.llms import OllamaLLM
 from langchain_core.prompts import ChatPromptTemplate
 from scraper import scrape_articles
 from vector import refresh_vector_store
+import App
 
 model = OllamaLLM(model="llama3.2")
 
@@ -24,7 +25,7 @@ chain = prompt | model
 
 while True:
     print("\n\n-------------------------------------")
-    question = input("Ask: ").strip()
+    question = App.query.strip()
 
     if question.lower() == "q":
         break
